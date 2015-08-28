@@ -8,11 +8,15 @@ module Main where
 	import Data.Graph.AStar	
 	import Debug.Trace
 
-	goal = 4
-	jugs = [3,5]
+	--goal = 4
+	--jugs = [3,5]
+	goal = 35
+	jugs = [15, 28, 42, 44]
 	startVertex = Prelude.map (\x -> (x, 0)) jugs
 	goalFunc jugs = (snd (last jugs)) == goal
-	distanceToGoal jugs = abs ((snd (last jugs)) - goal)
+	--distanceToGoal jugs = abs ((snd (last jugs)) - goal)
+	distanceToGoal jugs = minimum ( Prelude.map (\jug -> abs ( snd jug ) - goal) jugs)
+	--distanceToGoal jugs = 0
 	distanceToNeighbor x y = 1
 	main = do		
 		print $ aStar graph distanceToNeighbor distanceToGoal goalFunc startVertex
