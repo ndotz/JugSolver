@@ -6,7 +6,8 @@ module Main where
 	--import Data.Set
 	import Data.Maybe
 	import Data.Graph.AStar	
-	
+	import Debug.Trace
+
 	goal = 4
 	jugs = [3,5]
 	startVertex = Prelude.map (\x -> (x, 0)) jugs
@@ -16,11 +17,16 @@ module Main where
 	main = do		
 		print $ aStar graph distanceToNeighbor distanceToGoal goalFunc startVertex
 
-	pour jugTo jugFrom jugs = toList (adjust (+ jugFromValue) jugTo emptyedJugHash)
+	pour jugTo jugFrom jugs = toList (adjust (return jugToValueNew) jugTo emptyedJugHash)
 		where
 			jugHash = Data.Map.fromList jugs
-			emptyedJugHash = adjust (return 0) jugFrom jugHash 	--empty from jub
-			jugFromValue = fromJust (Data.Map.lookup jugFrom jugHash)			
+			emptyedJugHash = adjust (return jugFromValueNew) jugFrom jugHash 	--empty from jub
+			jugFromValueInitial = fromJust (Data.Map.lookup jugFrom jugHash)
+			jugToValueInitial = fromJust (Data.Map.lookup jugTo jugHash)
+			jugSum = jugFromValueInitial + jugToValueInitial
+			jugToValueNew = if jugSum > jugTo then jugTo else jugSum
+			fromSum = jugFromValueInitial - (jugTo - jugToValueInitial)
+			jugFromValueNew = if fromSum < 0 then 0 else fromSum
 	
 	fill jugTo jugs = toList (adjust (return jugTo) jugTo jugHash)
 		where
@@ -30,11 +36,12 @@ module Main where
 		where
 			jugHash = Data.Map.fromList jugs
 
-	graph jugs = Set.fromList (pourings ++ fillings ++ emptyings)
+	graph jugs = trace ("\n vertex ya on: " ++ (show jugs) ++ "\n neighbors " ++ (show neighbors) ++ "\n") neighbors
 		where
-			pourings = [ (pour (fst jugTo) (fst jugFrom) jugs) | jugTo <- jugs, jugFrom <- jugs, jugFrom /= jugTo, (snd jugFrom) > 0]
+			pourings = [ (pour (fst jugTo) (fst jugFrom) jugs) | jugTo <- jugs, jugFrom <- jugs, jugFrom /= jugTo, (snd jugFrom) > 0, (snd jugTo) /= (fst jugTo)]
 			fillings = [ (fill (fst jugTo) jugs) | jugTo <- jugs, (fst jugTo) /= (snd jugTo)]
 			emptyings = [ (emptyDatJug (fst jugTo) jugs) | jugTo <- jugs, (snd jugTo) > 0]
+			neighbors = Set.fromList (pourings ++ fillings ++ emptyings)
 
 	--graphTest = ( graph [(15,2), (28, 1), (42, 15), (44, 44)] )
 	graphTest = ( graph startVertex )
