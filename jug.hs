@@ -1,41 +1,45 @@
 module Main where
 	--import Prelude hiding (null, lookup, map, filter)
-	--import Data.HashMap.Lazy as HashMap	
-	--import qualified Data.Set as Set
-	--import Data.Graph.AStar
-	--3 and 5 gallon
-	--goal 4 gallon
-	--graph x where x is hash like this [(3, 2), (5,1)]	
-
-	--graph jugs = [(a, b) | jug1 <- jugs, jug2 <- jugs, jug1 /= jug2, ]
-	--graph jugs = foldl (\listOfStates jug1 -> foldl (\jug2 -> ) [] jugs ) [] jugs
-
-	pour jugTo jugFrom = ( (fst jugTo), (snd jugTo) + (snd jugFrom ))
-	--adjustTest = adjust (return 15) 3 jugList
-	--	where jugList = fromList [(3 :: Int,2), (5, 1)]
-
-	--graph jugs = [  [ (pour jugOuter jugInner) | jugInner <- jugs, jugOuter /= jugInner ] | jugOuter <- jugs ]
-	graph jugs = filter (\x -> snd x > fst x) combos
-		where
-			combos = [ (pour jugTo jugFrom) | jugTo <- jugs, jugFrom <- jugs, jugFrom /= jugTo]
+	--import Data.HashMap.Lazy as HashMap		
+	import Data.Map
+	import qualified Data.Set as Set
+	--import Data.Set
+	import Data.Maybe
+	import Data.Graph.AStar	
 	
-	--graph jugs = [a | a <- jugs]
+	goal = 4
+	jugs = [3,5]
+	startVertex = Prelude.map (\x -> (x, 0)) jugs
+	goalFunc jugs = (snd (last jugs)) == goal
+	distanceToGoal jugs = abs ((snd (last jugs)) - goal)
+	distanceToNeighbor x y = 1
+	main = do		
+		print $ aStar graph distanceToNeighbor distanceToGoal goalFunc startVertex
 
-	jugTest = ( graph [(15,2), (28, 1), (42, 15), (44, 44)] )
+	pour jugTo jugFrom jugs = toList (adjust (+ jugFromValue) jugTo emptyedJugHash)
+		where
+			jugHash = Data.Map.fromList jugs
+			emptyedJugHash = adjust (return 0) jugFrom jugHash 	--empty from jub
+			jugFromValue = fromJust (Data.Map.lookup jugFrom jugHash)			
+	
+	fill jugTo jugs = toList (adjust (return jugTo) jugTo jugHash)
+		where
+			jugHash = Data.Map.fromList jugs
 
-	--pourTest = do
-	--	print $ pour (3,2) (5, 1)
+	emptyDatJug jugTo jugs = toList (adjust (return 0) jugTo jugHash)
+		where
+			jugHash = Data.Map.fromList jugs
 
-	distance 1 = 2
-	distance 2 = 1
-	distance 3 = 5
-	distance 4 = 0
+	graph jugs = Set.fromList (pourings ++ fillings ++ emptyings)
+		where
+			pourings = [ (pour (fst jugTo) (fst jugFrom) jugs) | jugTo <- jugs, jugFrom <- jugs, jugFrom /= jugTo, (snd jugFrom) > 0]
+			fillings = [ (fill (fst jugTo) jugs) | jugTo <- jugs, (fst jugTo) /= (snd jugTo)]
+			emptyings = [ (emptyDatJug (fst jugTo) jugs) | jugTo <- jugs, (snd jugTo) > 0]
 
-	distanceNeighbors x y = 1
-
-	goal 4 = True
-	goal x = False
+	--graphTest = ( graph [(15,2), (28, 1), (42, 15), (44, 44)] )
+	graphTest = ( graph startVertex )
+	pourTest = pour 15 28 [(15,2), (28, 1), (42, 15), (44, 44)]
 
 	--main = putStrLn "Hello, World!"
 	--main = do
-	--	print $ aStar graph distanceNeighbors distance goal 1 
+	--	print $ aStar graph distanceNeighbors distance goal 1 	
