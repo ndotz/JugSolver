@@ -7,12 +7,13 @@ module Main where
 	import Data.Maybe
 	import Data.Graph.AStar	
 	import Debug.Trace
+	import Data.List
 
 	--goal = 4
-	--jugs = [3,5]
+	--jugsList = [3,5]
 	goal = 35
-	jugs = [15, 28, 42, 44]
-	startVertex = Prelude.map (\x -> (x, 0)) jugs
+	jugsList = [15, 28, 42, 44]
+	startVertex = (1,1) : (Prelude.map (\x -> (x, 0)) jugsList)
 	goalFunc jugs = (snd (last jugs)) == goal
 	--distanceToGoal jugs = abs ((snd (last jugs)) - goal)
 	distanceToGoal jugs = minimum ( Prelude.map (\jug -> abs ( snd jug ) - goal) jugs)
@@ -40,12 +41,32 @@ module Main where
 		where
 			jugHash = Data.Map.fromList jugs
 
-	graph jugs = trace ("\n vertex ya on: " ++ (show jugs) ++ "\n neighbors " ++ (show neighbors) ++ "\n") neighbors
+	--graph jugs = trace ("\n vertex ya on: " ++ (show jugs) ++ "\n neighbors " ++ (show neighbors) ++ "\n") neighbors
+	--	where
+	--		pourings = [ ( (pour (fst jugTo) (fst jugFrom) jugs) ) ++ [( (fromJust (elemIndex jugFrom jugsList) ), (fromJust (elemIndex jugTo jugsList)) )] 
+	--			| jugTo <- jugs, jugFrom <- jugs,
+	--			jugFrom /= jugTo, (snd jugFrom) > 0, (snd jugTo) /= (fst jugTo)]
+	--		fillings = [ (fill (fst jugTo) jugs) ++ [( -1 , (fromJust (elemIndex jugTo jugsList)) )] | jugTo <- jugs, (fst jugTo) /= (snd jugTo)]
+	--		emptyings = [ (emptyDatJug (fst jugTo) jugs) | jugTo <- jugs, (snd jugTo) > 0]
+	--		neighbors = Set.fromList (pourings ++ fillings ++ emptyings)
+
+	graph vertex = trace ("\n vertex ya on: " ++ (show jugs) ++ "\n neighbors " ++ (show neighbors) ++ "\n") neighbors
 		where
-			pourings = [ (pour (fst jugTo) (fst jugFrom) jugs) | jugTo <- jugs, jugFrom <- jugs, jugFrom /= jugTo, (snd jugFrom) > 0, (snd jugTo) /= (fst jugTo)]
-			fillings = [ (fill (fst jugTo) jugs) | jugTo <- jugs, (fst jugTo) /= (snd jugTo)]
-			emptyings = [ (emptyDatJug (fst jugTo) jugs) | jugTo <- jugs, (snd jugTo) > 0]
+			pourings = [ [( (fromJust (elemIndex (fst jugFrom) jugsList) ), (fromJust (elemIndex (fst jugTo) jugsList)) )] ++ ( (pour (fst jugTo) (fst jugFrom) jugs) )
+				| jugTo <- jugs,
+				jugFrom <- jugs,
+				jugFrom /= jugTo,
+				(snd jugFrom) > 0,
+				(snd jugTo) /= (fst jugTo)]
+			fillings = [ [( -1 , fromJust $ elemIndex jugToSize jugsList )] ++ (fill jugToSize jugs)
+				| jugTo <- jugs,
+				let jugToSize = fst jugTo,
+				jugToSize /= (snd jugTo)]
+			emptyings = [ [( fromJust $ elemIndex (fst jugTo) jugsList , -1 )] ++ (emptyDatJug (fst jugTo) jugs)
+				| jugTo <- jugs,
+				(snd jugTo) > 0]
 			neighbors = Set.fromList (pourings ++ fillings ++ emptyings)
+			jugs = tail vertex
 
 	--graphTest = ( graph [(15,2), (28, 1), (42, 15), (44, 44)] )
 	graphTest = ( graph startVertex )
