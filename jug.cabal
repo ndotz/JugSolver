@@ -1,0 +1,14 @@
+ name:                jug
+ version:             0.1.0.0
+ description:         Artificial intelligence program for solving water jug logic problem.
+ license:             GPL
+ --license-file:        LICENSE
+ author:              Nathan Dotz
+ maintainer:          Nathan Dotz
+ build-type:          Simple
+ cabal-version:       >=1.10
+ 
+ executable jug
+   main-is:           jug.hs
+   build-depends:     base >=4.7 && <4.8, unordered-containers, containers, astar
+   default-language:  Haskell2010
