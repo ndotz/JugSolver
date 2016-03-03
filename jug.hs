@@ -15,7 +15,17 @@ module Main where
 	distanceToGoal jugs = minimum ( Prelude.map (\jug -> abs ( snd jug ) - goal) jugs)
 	distanceToNeighbor x y = 1
 	main = do		
-		print $ aStar graph distanceToNeighbor distanceToGoal goalFunc startVertex
+		putStr $ format (fromJust $ aStar graph distanceToNeighbor distanceToGoal goalFunc startVertex)
+
+	format result = instructionsAsText
+		where
+			instructionsAsNumbers = (Prelude.map (\x -> head x) result)
+			instructionsAsText = concat [  "Pour " ++ (printJug first) ++ " into " ++ (printJug second) ++ ".\n"			
+				| jug <- instructionsAsNumbers,
+				let first = fst jug,
+				let second = snd jug]
+			isFountain = (== -1)
+			printJug index = if isFountain index then "fountain" else show (jugsList !! index) ++ " gallon jug"
 
 	pour jugTo jugFrom jugs = toList (adjust (return jugToValueNew) jugTo emptyedJugHash)
 		where
